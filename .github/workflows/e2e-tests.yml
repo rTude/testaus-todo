@@ -1,0 +1,30 @@
+name: E2E tests
+
+on:
+  push:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start application
+        run: npm start > server.log 2>&1 &
+
+      - name: Wait for health check
+        run: curl --fail --retry 10 --retry-delay 1 http://localhost:5173/health
+
+      - name: Run Cypress tests
+        run: npx cypress run
