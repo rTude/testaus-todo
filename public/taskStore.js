@@ -8,6 +8,7 @@
  * @property {string} status
  * @property {string} description
  * @property {boolean} completed
+ * @property {string} [previousStatus]
  * @property {number} createdAt
  * @property {number} updatedAt
  */
@@ -138,6 +139,12 @@ export function updateTask(existingTask, payload, now) {
     ...existingTask,
     ...payload,
     completed: payload.status === 'done' ? true : existingTask.completed,
+    previousStatus:
+      payload.status === 'done'
+        ? existingTask.status !== 'done'
+          ? existingTask.status
+          : existingTask.previousStatus || 'todo'
+        : existingTask.previousStatus,
     updatedAt: now,
   };
 }
@@ -158,8 +165,13 @@ export function toggleTaskCompletion(task, now) {
     status: nextCompleted
       ? 'done'
       : task.status === 'done'
-      ? 'todo'
+      ? task.previousStatus || 'todo'
       : task.status,
+    previousStatus: nextCompleted
+      ? task.status === 'done'
+        ? task.previousStatus || 'todo'
+        : task.status
+      : task.previousStatus,
     updatedAt: now,
   };
 }
